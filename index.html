@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accelerator Calculator Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --secondary: #64748b;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --text: #1e293b;
+        --border: #e2e8f0;
+      }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+      }
+
+      h1 {
+        color: var(--primary);
+        margin-bottom: 5px;
+      }
+      p.subtitle {
+        color: var(--secondary);
+        margin-bottom: 25px;
+        font-size: 0.9rem;
+      }
+
+      /* Dashboard Layout */
+      .dashboard {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 25px;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      /* Left Column: Controls */
+      .controls-panel {
+        background: var(--card);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        height: fit-content;
+      }
+
+      .section-title {
+        font-weight: 700;
+        font-size: 1rem;
+        margin: 15px 0 10px 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid var(--border);
+        display: block;
+      }
+
+      .input-row {
+        margin-bottom: 12px;
+      }
+      label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+        color: var(--secondary);
+        font-weight: 600;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-sizing: border-box;
+      }
+
+      .tenure-inputs {
+        display: grid;
+        grid-template-columns: 1fr 80px;
+        gap: 10px;
+      }
+
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+
+      #calcBtn {
+        background: var(--primary);
+        color: white;
+        margin-top: 20px;
+        font-size: 1rem;
+      }
+      .add-btn {
+        background: #f1f5f9;
+        color: var(--text);
+        border: 1px solid var(--border);
+        font-size: 0.8rem;
+      }
+      .remove-btn {
+        background: #fee2e2;
+        color: #b91c1c;
+        width: auto;
+        padding: 4px 8px;
+        font-size: 0.7rem;
+      }
+
+      /* Right Column: Results & Charts */
+      .display-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+
+      .results-box {
+        background: #1e293b;
+        color: #f1f5f9;
+        padding: 20px;
+        border-radius: 12px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        line-height: 1.5;
+      }
+
+      /* 2x2 Grid for Charts */
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .chart-card {
+        background: var(--card);
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .chart-card h3 {
+        font-size: 0.9rem;
+        margin: 0 0 15px 0;
+        color: var(--secondary);
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 1100px) {
+        .dashboard {
+          grid-template-columns: 1fr;
+        }
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Accelerator Calculator</h1>
+    <p class="subtitle">Dynamic Mortgage Payoff & Recast Modeling</p>
+
+    <div class="dashboard">
+      <aside class="controls-panel">
+        <span class="section-title">Core Loan Data</span>
+        <div class="input-row">
+          <label>Purchase Price ($)</label>
+          <input id="purchasePrice" type="number" value="395000" />
+        </div>
+        <div class="input-row">
+          <label>Down Payment ($)</label>
+          <input id="downPayment" type="number" value="118500" />
+        </div>
+        <div class="input-row">
+          <label>Interest Rate (%)</label>
+          <input id="interestRate" type="number" step="0.001" value="6.125" />
+        </div>
+
+        <span class="section-title">Tenure Strategy</span>
+        <div class="input-row">
+          <label>Liv Extra ($) & Months</label>
+          <div class="tenure-inputs">
+            <input id="livExtra" type="number" value="4000" />
+            <input id="livTenure" type="number" value="12" />
+          </div>
+        </div>
+        <div class="input-row">
+          <label>JC Extra ($) & Months</label>
+          <div class="tenure-inputs">
+            <input id="jcExtra" type="number" value="2000" />
+            <input id="jcTenure" type="number" value="12" />
+          </div>
+        </div>
+        <div class="input-row">
+          <label>Post-Tenures Extra ($/mo)</label>
+          <input id="remainingExtra" type="number" value="120" />
+        </div>
+        <div class="input-row">
+          <label>Post-Liv Recast?</label>
+          <select id="postLivRecast">
+            <option value="yes">Yes</option>
+            <option value="no" selected>No</option>
+          </select>
+        </div>
+
+        <span class="section-title">One-Time Lump Sums</span>
+        <div id="lumpSumContainer">
+          <div style="margin-bottom: 10px">
+            <label style="font-size: 0.7rem">Month 2 Lump Sum ($)</label>
+            <input class="lumpSumAmount" type="number" value="10000" />
+            <input class="lumpSumMonth" type="hidden" value="2" />
+          </div>
+        </div>
+        <button id="addLumpBtn" class="add-btn">+ Add One-Time Sum</button>
+
+        <span class="section-title">Recurring Lump Sums</span>
+        <div id="multiLumpContainer"></div>
+        <button id="addMultiLumpBtn" class="add-btn">
+          + Add Multi-Month Sum
+        </button>
+
+        <button id="calcBtn">Calculate Results</button>
+      </aside>
+
+      <main class="display-panel">
+        <div id="results" class="results-box">
+          Press Calculate to run the model.
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Minimum Payment Profile</h3>
+            <canvas id="chartNormal"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Accelerated Strategy</h3>
+            <canvas id="chartAccelerated"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Cumulative Interest</h3>
+            <canvas id="chartCumulativeInterest"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Cumulative Equity</h3>
+            <canvas id="chartCumulativeEquity"></canvas>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      let chart1, chart2, chart3, chart4;
+
+      // --- Dynamic Field UI ---
+      document.getElementById('addLumpBtn').addEventListener('click', () => {
+        const container = document.getElementById('lumpSumContainer');
+        const div = document.createElement('div');
+        div.style.cssText =
+          'border: 1px solid var(--border); padding: 8px; border-radius: 6px; margin-bottom: 8px;';
+        div.innerHTML = `
+        <label>Amount ($):</label> <input class="lumpSumAmount" type="number" value="0">
+        <label>Month:</label> <input class="lumpSumMonth" type="number" value="3">
+        <button type="button" class="remove-btn">Remove</button>
+      `;
+        div
+          .querySelector('.remove-btn')
+          .addEventListener('click', () => div.remove());
+        container.appendChild(div);
+      });
+
+      document
+        .getElementById('addMultiLumpBtn')
+        .addEventListener('click', () => {
+          const container = document.getElementById('multiLumpContainer');
+          const div = document.createElement('div');
+          div.style.cssText =
+            'border: 1px solid var(--border); padding: 8px; border-radius: 6px; margin-bottom: 8px;';
+          div.innerHTML = `
+        <label>Amount ($):</label> <input class="multiLumpAmount" type="number" value="0">
+        <label>Months (e.g. 12, 24):</label> <input class="multiLumpMonths" type="text" value="">
+        <button type="button" class="remove-btn">Remove</button>
+      `;
+          div
+            .querySelector('.remove-btn')
+            .addEventListener('click', () => div.remove());
+          container.appendChild(div);
+        });
+
+      // --- Math Engine (Original Logic) ---
+      function amortizationScheduleWithTenures(
+        principal,
+        ratePct,
+        termYears,
+        options
+      ) {
+        const monthlyRate = ratePct / 100 / 12;
+        const totalMonths = termYears * 12;
+        let monthlyPayment =
+          (principal * monthlyRate) /
+          (1 - Math.pow(1 + monthlyRate, -totalMonths));
+        let balance = principal;
+
+        const lumpMap = {};
+        const lumpsFromDom = Array.from(
+          document.getElementsByClassName('lumpSumAmount')
+        );
+        const monthsFromDom = Array.from(
+          document.getElementsByClassName('lumpSumMonth')
+        );
+        lumpsFromDom.forEach((el, i) => {
+          const amt = parseFloat(el.value) || 0;
+          const mon = parseInt(monthsFromDom[i].value) || 0;
+          if (amt > 0 && mon > 0) lumpMap[mon] = (lumpMap[mon] || 0) + amt;
+        });
+
+        const multiAmounts = Array.from(
+          document.getElementsByClassName('multiLumpAmount')
+        );
+        const multiMonthsInputs = Array.from(
+          document.getElementsByClassName('multiLumpMonths')
+        );
+        multiAmounts.forEach((el, i) => {
+          const amt = parseFloat(el.value) || 0;
+          const monthsStr = multiMonthsInputs[i]?.value || '';
+          if (amt > 0 && monthsStr) {
+            monthsStr.split(',').forEach((part) => {
+              const mon = parseInt(part.trim()) || 0;
+              if (mon > 0) lumpMap[mon] = (lumpMap[mon] || 0) + amt;
+            });
+          }
+        });
+
+        const schedule = [];
+        let didRecast = false;
+        let postRecastMonthly = null;
+
+        for (let m = 1; m <= totalMonths && balance > 0.0005; m++) {
+          const interest = balance * monthlyRate;
+          let extraMonthly = 0;
+          if (m <= options.livMonths) extraMonthly += options.livExtra;
+          if (m <= options.jcMonths) extraMonthly += options.jcExtra;
+          if (m > Math.max(options.livMonths, options.jcMonths))
+            extraMonthly += options.remainingExtra;
+
+          let payment = monthlyPayment + extraMonthly;
+          let principalPaid = Math.min(payment - interest, balance);
+          balance -= principalPaid;
+
+          if (lumpMap[m]) {
+            const appliedLump = Math.min(lumpMap[m], balance);
+            balance -= appliedLump;
+          }
+
+          if (
+            options.autoRecast &&
+            !didRecast &&
+            options.livMonths > 0 &&
+            m === options.livMonths
+          ) {
+            const rem = totalMonths - m;
+            if (rem > 0 && balance > 0.0005) {
+              monthlyPayment =
+                (balance * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -rem));
+              postRecastMonthly = monthlyPayment;
+              didRecast = true;
+            }
+          }
+
+          schedule.push({
+            month: m,
+            interest,
+            principal: principalPaid,
+            balance: Math.max(0, balance),
+          });
+          if (balance <= 0.0005) break;
+        }
+        return { schedule, didRecast, postRecastMonthly };
+      }
+
+      function amortizationScheduleNormal(principal, ratePct, termYears) {
+        const monthlyRate = ratePct / 100 / 12;
+        const totalMonths = termYears * 12;
+        const monthlyPayment =
+          (principal * monthlyRate) /
+          (1 - Math.pow(1 + monthlyRate, -totalMonths));
+        let balance = principal;
+        const schedule = [];
+        for (let m = 1; m <= totalMonths && balance > 0.0005; m++) {
+          const interest = balance * monthlyRate;
+          const principalPaid = Math.min(monthlyPayment - interest, balance);
+          balance -= principalPaid;
+          schedule.push({
+            month: m,
+            interest,
+            principal: principalPaid,
+            balance: Math.max(0, balance),
+          });
+        }
+        return schedule;
+      }
+
+      // --- Charting Engine ---
+      function drawBasicChart(canvasId, data, label1, color1, label2, color2) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        const chartMap = { chartNormal: chart1, chartAccelerated: chart2 };
+        if (chartMap[canvasId]) chartMap[canvasId].destroy();
+
+        const newChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.map((d) => d.month),
+            datasets: [
+              {
+                label: label1,
+                data: data.map((d) => d.principal || d.principalPaid || 0),
+                borderColor: color1,
+                backgroundColor: color1 + '22',
+                fill: true,
+                tension: 0.2,
+              },
+              {
+                label: label2,
+                data: data.map((d) => d.interest),
+                borderColor: color2,
+                backgroundColor: color2 + '22',
+                fill: true,
+                tension: 0.2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 10, font: { size: 10 } },
+              },
+            },
+          },
+        });
+
+        if (canvasId === 'chartNormal') chart1 = newChart;
+        else chart2 = newChart;
+      }
+
+      function drawCumulativeInterestChart(normal, accelerated) {
+        const ctx = document
+          .getElementById('chartCumulativeInterest')
+          .getContext('2d');
+        if (chart3) chart3.destroy();
+        let cN = 0,
+          cA = 0;
+        const dataN = [],
+          dataA = [],
+          labels = [];
+        const max = Math.max(normal.length, accelerated.length);
+        for (let i = 0; i < max; i++) {
+          if (i < normal.length) cN += normal[i].interest;
+          if (i < accelerated.length) cA += accelerated[i].interest;
+          labels.push(i + 1);
+          dataN.push(cN);
+          dataA.push(cA);
+        }
+        chart3 = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Normal',
+                data: dataN,
+                borderColor: '#ef4444',
+                tension: 0.2,
+              },
+              {
+                label: 'Accelerated',
+                data: dataA,
+                borderColor: '#2563eb',
+                tension: 0.2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+          },
+        });
+      }
+
+      function drawCumulativeEquityChart(normal, accelerated, purchasePrice) {
+        const ctx = document
+          .getElementById('chartCumulativeEquity')
+          .getContext('2d');
+        if (chart4) chart4.destroy();
+        const labels = [],
+          dataN = [],
+          dataA = [];
+        const max = Math.max(normal.length, accelerated.length);
+        for (let i = 0; i < max; i++) {
+          dataN.push(
+            purchasePrice - (i < normal.length ? normal[i].balance : 0)
+          );
+          dataA.push(
+            purchasePrice -
+              (i < accelerated.length ? accelerated[i].balance : 0)
+          );
+          labels.push(i + 1);
+        }
+        chart4 = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Normal',
+                data: dataN,
+                borderColor: '#64748b',
+                tension: 0.2,
+              },
+              {
+                label: 'Accelerated',
+                data: dataA,
+                borderColor: '#10b981',
+                tension: 0.2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+          },
+        });
+      }
+
+      // --- Main Calculation ---
+      function calculate() {
+        const purchasePrice =
+          parseFloat(document.getElementById('purchasePrice').value) || 0;
+        const downPayment =
+          parseFloat(document.getElementById('downPayment').value) || 0;
+        const interestRate =
+          parseFloat(document.getElementById('interestRate').value) || 6.125;
+        const loanAmount = Math.max(0, purchasePrice - downPayment);
+
+        const options = {
+          livMonths: parseInt(document.getElementById('livTenure').value) || 0,
+          jcMonths: parseInt(document.getElementById('jcTenure').value) || 0,
+          livExtra: parseFloat(document.getElementById('livExtra').value) || 0,
+          jcExtra: parseFloat(document.getElementById('jcExtra').value) || 0,
+          remainingExtra:
+            parseFloat(document.getElementById('remainingExtra').value) || 0,
+          autoRecast: document.getElementById('postLivRecast').value === 'yes',
+        };
+
+        const normal = amortizationScheduleNormal(loanAmount, interestRate, 30);
+        const accelData = amortizationScheduleWithTenures(
+          loanAmount,
+          interestRate,
+          30,
+          options
+        );
+        const accelerated = accelData.schedule;
+
+        const interestNormal = normal.reduce((s, r) => s + r.interest, 0);
+        const interestAccel = accelerated.reduce((s, r) => s + r.interest, 0);
+        const monthlyRate = interestRate / 100 / 12;
+        const basePay =
+          (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -360));
+
+        const fmt = (n) =>
+          n.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+
+        document.getElementById(
+          'results'
+        ).textContent = `Loan Amount: $${loanAmount.toLocaleString()}
+Base Payment: $${fmt(basePay)}
+Post-Recast Base: ${
+          accelData.didRecast
+            ? '$' + fmt(accelData.postRecastMonthly)
+            : '$' + fmt(basePay) + ' (No recast)'
+        }
+
+TIME SAVED:
+Normal: ${normal.length} mo (${(normal.length / 12).toFixed(1)} yrs)
+Accel:  ${accelerated.length} mo (${(accelerated.length / 12).toFixed(1)} yrs)
+Saved:  ${normal.length - accelerated.length} months
+
+INTEREST SAVED:
+Normal: $${fmt(interestNormal)}
+Accel:  $${fmt(interestAccel)}
+Saved:  $${fmt(interestNormal - interestAccel)}`;
+
+        drawBasicChart(
+          'chartNormal',
+          normal,
+          'Principal',
+          '#2563eb',
+          'Interest',
+          '#ef4444'
+        );
+        drawBasicChart(
+          'chartAccelerated',
+          accelerated,
+          'Principal',
+          '#2563eb',
+          'Interest',
+          '#ef4444'
+        );
+        drawCumulativeInterestChart(normal, accelerated);
+        drawCumulativeEquityChart(normal, accelerated, purchasePrice);
+      }
+
+      // --- Startup Defaults ---
+      window.addEventListener('load', () => {
+        const container = document.getElementById('multiLumpContainer');
+        const addDefaultMulti = (amt, months) => {
+          const div = document.createElement('div');
+          div.style.cssText =
+            'border: 1px solid var(--border); padding: 8px; border-radius: 6px; margin-bottom: 8px;';
+          div.innerHTML = `
+          <label>Amount ($):</label> <input class="multiLumpAmount" type="number" value="${amt}">
+          <label>Months:</label> <input class="multiLumpMonths" type="text" value="${months}">
+          <button type="button" class="remove-btn">Remove</button>
+        `;
+          div
+            .querySelector('.remove-btn')
+            .addEventListener('click', () => div.remove());
+          container.appendChild(div);
+        };
+
+        addDefaultMulti(10000, '24, 30, 36, 42');
+        addDefaultMulti(14000, '12');
+
+        document.getElementById('calcBtn').addEventListener('click', calculate);
+        calculate();
+      });
+    </script>
+  </body>
+</html>
