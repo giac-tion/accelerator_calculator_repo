@@ -213,17 +213,7 @@
           </select>
         </div>
 
-        <span class="section-title">One-Time Lump Sums</span>
-        <div id="lumpSumContainer">
-          <div style="margin-bottom: 10px">
-            <label style="font-size: 0.7rem">Month 2 Lump Sum ($)</label>
-            <input class="lumpSumAmount" type="number" value="10000" />
-            <input class="lumpSumMonth" type="hidden" value="2" />
-          </div>
-        </div>
-        <button id="addLumpBtn" class="add-btn">+ Add One-Time Sum</button>
-
-        <span class="section-title">Recurring Lump Sums</span>
+        <span class="section-title">Lump Sums</span>
         <div id="multiLumpContainer"></div>
         <button id="addMultiLumpBtn" class="add-btn">
           + Add Multi-Month Sum
@@ -262,22 +252,6 @@
       let chart1, chart2, chart3, chart4;
 
       // --- Dynamic Field UI ---
-      document.getElementById('addLumpBtn').addEventListener('click', () => {
-        const container = document.getElementById('lumpSumContainer');
-        const div = document.createElement('div');
-        div.style.cssText =
-          'border: 1px solid var(--border); padding: 8px; border-radius: 6px; margin-bottom: 8px;';
-        div.innerHTML = `
-        <label>Amount ($):</label> <input class="lumpSumAmount" type="number" value="0">
-        <label>Month:</label> <input class="lumpSumMonth" type="number" value="3">
-        <button type="button" class="remove-btn">Remove</button>
-      `;
-        div
-          .querySelector('.remove-btn')
-          .addEventListener('click', () => div.remove());
-        container.appendChild(div);
-      });
-
       document
         .getElementById('addMultiLumpBtn')
         .addEventListener('click', () => {
@@ -596,7 +570,7 @@ Post-Recast Base: ${
 TIME SAVED:
 Normal: ${normal.length} mo (${(normal.length / 12).toFixed(1)} yrs)
 Accel:  ${accelerated.length} mo (${(accelerated.length / 12).toFixed(1)} yrs)
-Saved:  ${normal.length - accelerated.length} months
+Saved:  ${normal.length - accelerated.length} months (${((normal.length - accelerated.length) / 12).toFixed(1)} yrs)
 
 INTEREST SAVED:
 Normal: $${fmt(interestNormal)}
@@ -641,6 +615,7 @@ Saved:  $${fmt(interestNormal - interestAccel)}`;
           container.appendChild(div);
         };
 
+        addDefaultMulti(10000, '2');
         addDefaultMulti(10000, '24, 30, 36, 42');
         addDefaultMulti(14000, '12');
 
