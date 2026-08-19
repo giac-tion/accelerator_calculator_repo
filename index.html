@@ -191,20 +191,20 @@
         <div class="input-row">
           <label>Liv Extra ($) & Months</label>
           <div class="tenure-inputs">
-            <input id="livExtra" type="number" value="4000" />
-            <input id="livTenure" type="number" value="12" />
+            <input id="livExtra" type="number" value="3500" />
+            <input id="livTenure" type="number" value="15" />
           </div>
         </div>
         <div class="input-row">
           <label>JC Extra ($) & Months</label>
           <div class="tenure-inputs">
             <input id="jcExtra" type="number" value="2000" />
-            <input id="jcTenure" type="number" value="12" />
+            <input id="jcTenure" type="number" value="19" />
           </div>
         </div>
         <div class="input-row">
           <label>Post-Tenures Extra ($/mo)</label>
-          <input id="remainingExtra" type="number" value="120" />
+          <input id="remainingExtra" type="number" value="850" />
         </div>
         <div class="input-row">
           <label>Post-Liv Recast?</label>
@@ -617,7 +617,7 @@ Saved:  $${fmt(interestNormal - interestAccel)}`;
         };
 
         addDefaultMulti(10000, '2');
-        addDefaultMulti(10000, '24, 30, 36, 42');
+        addDefaultMulti(6800, '24, 30, 36, 42');
         addDefaultMulti(14000, '12');
 
         document.getElementById('calcBtn').addEventListener('click', calculate);
